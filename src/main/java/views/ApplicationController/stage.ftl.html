@@ -1,0 +1,52 @@
+<#-- @ftlvariable name="estate" type="model.Estate" -->
+
+<#import "../layout/main.ftl.html" as main>
+
+
+<@main.main title="Status App">
+
+<nav>
+
+    <div class="nav-wrapper">
+        <a href="#" class="brand-logo right">Status App</a>
+        <ul>
+            <#list estate.allStages as stageName>
+                <li class="<#if estate.isFilteredToStage(stageName)>active</#if>">
+                    <a href="/${stageName}">${stageName}</a>
+                </li>
+            </#list>
+        </ul>
+    </div>
+
+</nav>
+
+<div class="container">
+
+    <div class="row">
+        <#list estate.groups as grp>
+           <div class="col s4">
+               <div class="card">
+                   <div class="card-content">
+                       <span class="card-title">${grp.name}</span>
+
+                       <ul class="collection">
+                           <#list grp.servers as server>
+                             <li class="collection-item">${server.instance.instanceId}</li>
+                           </#list>
+                       </ul>
+
+                   </div>
+               </div>
+           </div>
+        </#list>
+    </div>
+
+    <ol>
+        <#list estate.groups as grp>
+           <li>${grp.name} ${grp.class}</li>
+        </#list>
+    </ol>
+
+</div>
+
+</@main.main>

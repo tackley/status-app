@@ -1,0 +1,47 @@
+<#-- @ftlvariable name="webJarsAt" type="ninja.template.TemplateEngineFreemarkerWebJarsAtMethod" -->
+<#-- @ftlvariable name="estate" type="model.Estate" -->
+
+<#macro main title refreshSecs=300>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>${title}</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--Import Google Icon Font-->
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link rel="stylesheet" href='${webJarsAt("materializecss/0.97.5/css/materialize.min.css")}'>
+    <#--<link rel="stylesheet" href='${assetsAt("css/main.css")}'>-->
+    <#--<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">-->
+
+    <meta http-equiv="refresh" content="${refreshSecs}">
+</head>
+<body>
+
+    <#if (flash.error)??>
+    <div class="alert alert-danger">
+    ${flash.error}
+    </div>
+    </#if>
+
+    <#if (flash.success)??>
+    <div class="alert alert-success">
+    ${flash.success}
+    </div>
+    </#if>
+
+
+<#nested>
+
+<script src='${webJarsAt("jquery/2.2.1/jquery.min.js")}'></script>
+<script src='${webJarsAt("materializecss/0.97.5/js/materialize.min.js")}'></script>
+
+</body>
+</html>
+
+
+</#macro>

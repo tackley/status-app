@@ -1,0 +1,119 @@
+
+
+buildscript {
+  ext.kotlin_version = '1.0.1'
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+  }
+}
+
+plugins {
+    id "com.github.ben-manes.versions" version "0.12.0"
+    id 'com.github.ksoichiro.web.resource' version '1.6.1'
+    id "org.akhikhl.gretty" version "1.2.4"
+}
+
+apply plugin: 'kotlin'
+//apply plugin: 'application'
+apply plugin: 'idea'
+//apply plugin: 'jetty'
+
+//mainClassName = 'spot.MainKt'
+
+repositories {
+  mavenCentral()
+  maven { url 'http://repository.jetbrains.com/all' }
+}
+
+ext {
+    aws_version = '1.10.62'
+}
+
+dependencies {
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+  compile "org.ninjaframework:ninja-standalone:5.4.0"
+  compile "com.amazonaws:aws-java-sdk-ec2:$aws_version"
+  compile "com.amazonaws:aws-java-sdk-autoscaling:$aws_version"
+  compile "com.amazonaws:aws-java-sdk-cloudwatch:$aws_version"
+  compile "com.amazonaws:aws-java-sdk-elasticloadbalancing:$aws_version"
+  compile "com.amazonaws:aws-java-sdk-sqs:$aws_version"
+
+  compile 'org.webjars:materializecss:0.97.5'
+  compile "org.webjars:jquery:2.2.1"
+  compile "org.webjars:zeroclipboard:2.2.0"
+
+  testCompile "org.ninjaframework:ninja-test-utilities:5.4.0"
+  testCompile "junit:junit:4.12"
+  testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+  testCompile "com.natpryce:hamkrest:1.1.0.0"
+}
+
+//jettyRun {
+//    httpPort = 9000
+//    contextPath = '/'
+//    scanIntervalSeconds = 1
+//
+//    doFirst {
+//        System.setProperty("ninja.mode", "dev")
+//    }
+//}
+
+gretty {
+    jvmArgs = [ "-Dninja.mode=dev" ]
+    httpPort = 9000
+    servletContainer = 'jetty9'
+    contextPath = '/'
+
+    managedClassReload = true
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+        kotlin {
+            srcDir 'src/main/java'
+        }
+        resources {
+            srcDir 'src/main/java'
+            include '**/*'
+            exclude '**/*.java'
+            exclude '**/*.kt'
+        }
+        resources {
+            srcDir 'src/main/resources'
+            include '**/*'
+        }
+    }
+}
+
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
+
+
+webResource {
+    base {
+        // Change base directories for src/dest
+        src 'src/main'
+        dest 'src/main/java/assets'
+    }
+}
+
+
+
+compileJava.dependsOn 'webResourceCompile'
+//jettyRun.dependsOn 'webResourceCompile'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = "2.12"
+}
