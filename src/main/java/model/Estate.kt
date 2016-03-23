@@ -1,33 +1,46 @@
 package model
 
+import com.amazonaws.services.ec2.model.InstanceState
+import com.amazonaws.services.ec2.model.InstanceStateName
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
 import com.google.inject.ProvidedBy
 import com.google.inject.Provider
 import lib.AWS
+import java.util.concurrent.TimeUnit
+import com.amazonaws.services.autoscaling.model.Instance as AsgInstance
 import com.amazonaws.services.ec2.model.Instance as Ec2Instance
 
 
-data class Server(val instance: Ec2Instance) {
-    private fun tagValue(tagName: String): String? = instance.tags.find { it.key == tagName }?.value
-
-    val stage: String = tagValue("Stage") ?: "(unknown)"
-    val app: String? = tagValue("App")
-}
-
-
 class EstateQuery : Provider<Estate> {
-    override fun get(): Estate {
+
+
+    private val cache = CacheBuilder.newBuilder()
+        .expireAfterWrite(30, TimeUnit.SECONDS)
+        .build<String, Estate>(object : CacheLoader<String, Estate>() {
+          override fun load(k: String) = uncachedGet()
+        })
+
+
+    override fun get(): Estate = cache.get("estate")
+
+    fun uncachedGet(): Estate {
+        println("building Estate...")
         val servers = buildServerMap()
 
         val asgs = AutoScalingServerGroup.loadAll(servers)
 
-        // TODO: make this a fold when we introduce detection of EMR too
-        val allServersSoFar = asgs.flatMap { it.servers }
+        val allServersSoFar = asgs.flatMap { it.servers }.map { it.instanceId }
 
-        val otherServers = servers.filterValues { !allServersSoFar.contains(it) }
+        val otherServers = servers.values
+                .filterNot { allServersSoFar.contains(it.instanceId) }
+                .groupBy { it.app ?: "Other" }
 
-        val otherServerGroup = MiscServerGroup(otherServers.values)
+        val otherServerGroups = otherServers.map {
+            MiscServerGroup(name = it.key, servers = it.value)
+        }
 
-        val allGroups = asgs + otherServerGroup
+        val allGroups = (asgs + otherServerGroups).sortedBy { it.name }
 
         return Estate(allGroups, allGroups.flatMap { it.stages() }.distinct())
     }
@@ -38,7 +51,7 @@ class EstateQuery : Provider<Estate> {
                 .describeInstances()
                 .reservations
                 .flatMap { it.instances }
-                .map { it.instanceId to Server(it) }
+                .map { it.instanceId to Server(it, null) }
                 .toMap()
     }
 
@@ -58,5 +71,8 @@ data class Estate
     )
 
     fun isFilteredToStage(stage: String) = stage == this.stage
+
+    fun findServer(instanceId: String): Server? =
+        groups.flatMap { it.servers }.find { it.instanceId == instanceId }
 
 }

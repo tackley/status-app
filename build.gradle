@@ -52,23 +52,17 @@ dependencies {
   testCompile "com.natpryce:hamkrest:1.1.0.0"
 }
 
-//jettyRun {
-//    httpPort = 9000
-//    contextPath = '/'
-//    scanIntervalSeconds = 1
-//
-//    doFirst {
-//        System.setProperty("ninja.mode", "dev")
-//    }
-//}
-
 gretty {
     jvmArgs = [ "-Dninja.mode=dev" ]
     httpPort = 9000
     servletContainer = 'jetty9'
     contextPath = '/'
 
-    managedClassReload = true
+    //managedClassReload = true
+
+    // set up intellij to compile the project automatically - don't need
+    //  gradle to compile as well!
+    recompileOnSourceChange = false
 }
 
 sourceSets {

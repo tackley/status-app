@@ -9,6 +9,10 @@ abstract class ServerGroup
     abstract val servers: Collection<Server>
 
     fun stages() = servers.map { it.stage }.toSet()
+
+    open fun hasAutoscalingGroup(): Boolean = false
+    open fun hasELB(): Boolean = false
+
 }
 
 class AutoScalingServerGroup(val asg: AutoScalingGroup, override val servers: Collection<Server>) : ServerGroup() {
@@ -17,6 +21,7 @@ class AutoScalingServerGroup(val asg: AutoScalingGroup, override val servers: Co
     val stage: String = tagValue("Stage") ?: "Other"
     val app: String = tagValue("App") ?: asg.autoScalingGroupName
 
+    override fun hasAutoscalingGroup() = true
 
     override val name: String = app
 
@@ -27,13 +32,15 @@ class AutoScalingServerGroup(val asg: AutoScalingGroup, override val servers: Co
             val autoScalingGroups = AWS.autoscaling.describeAutoScalingGroups().autoScalingGroups
 
             return autoScalingGroups.map { autoScalingGroup ->
-                val s = autoScalingGroup.instances.map { serverMap[it.instanceId] }.requireNoNulls()
+                val s = autoScalingGroup.instances.map {
+                    serverMap[it.instanceId]?.copy(asgInfo = it)
+                }.requireNoNulls()
                 AutoScalingServerGroup(asg = autoScalingGroup, servers = s)
             }
         }
     }
 }
 
-class MiscServerGroup(override val servers: Collection<Server>) : ServerGroup() {
-    override val name: String = "(other servers)"
+class MiscServerGroup(override val servers: Collection<Server>, override val name: String) : ServerGroup() {
+
 }

@@ -16,6 +16,7 @@ class Routes : ApplicationRoutes {
             GET().route("/").with(ApplicationController::class.java, "index")
 
             GET().route("/{stage}").with(ApplicationController::class.java, "stage")
+            GET().route("/instance/{instanceId}").with(ApplicationController::class.java, "instance")
 
             ///////////////////////////////////////////////////////////////////////
             // Assets (pictures / javascript)

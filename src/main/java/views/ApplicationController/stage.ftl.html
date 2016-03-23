@@ -20,32 +20,56 @@
 
 </nav>
 
-<div class="container">
+<div class="row">
 
-    <div class="row">
-        <#list estate.groups as grp>
-           <div class="col s4">
-               <div class="card">
+    <#list estate.groups as grp>
+           <div class="col l4 m6 s12">
+               <div class="card group-card z-depth-3">
                    <div class="card-content">
                        <span class="card-title">${grp.name}</span>
 
-                       <ul class="collection">
-                           <#list grp.servers as server>
-                             <li class="collection-item">${server.instance.instanceId}</li>
-                           </#list>
-                       </ul>
+                       <table>
+                           <thead>
+                             <tr>
+                                 <td>Instance</td>
+                                 <td>State</td>
+                                 <#if grp.hasAutoscalingGroup()>
+                                 <td>AutoScaling</td>
+                                 </#if>
+                                 <td>ELB</td>
+                                 <td>Launched</td>
+                                 <td>Version</td>
+                             </tr>
+                           </thead>
+                           <tbody>
+                               <#list grp.servers as server>
+                                <tr class="${server.cssClass}">
+                                    <td>
+                                        <a href="/instance/${server.instance.instanceId}">
+                                          ${server.instance.instanceId}
+                                        </a>
+                                    </td>
+                                    <td>${server.state?cap_first}</td>
+                                    <#if grp.hasAutoscalingGroup()>
+                                    <td>
+                                        ${server.autoscalingLifecycleState}
+                                    </td>
+                                    </#if>
+                                    <td></td>
+                                    <td>
+                                        ${prettyTime(server.instance.launchTime)}
+                                    </td>
+                                    <td></td>
+                                </tr>
+                               </#list>
+
+                           </tbody>
+                       </table>
 
                    </div>
                </div>
            </div>
-        </#list>
-    </div>
-
-    <ol>
-        <#list estate.groups as grp>
-           <li>${grp.name} ${grp.class}</li>
-        </#list>
-    </ol>
+    </#list>
 
 </div>
 

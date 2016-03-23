@@ -19,9 +19,13 @@ class ApplicationController @Inject constructor (val estateProvider: Provider<Es
     }
 
     fun stage(@PathParam("stage") stage: String): Result {
-        println("rendering for stage $stage")
-
         val estate = estateProvider.get().filterToStage(stage)
         return Results.html().render(estate)
+    }
+
+    fun instance(@PathParam("instanceId") instanceId: String): Result {
+        val server = estateProvider.get().findServer(instanceId)
+        return Results.json().render(server)
+        //return Results.html().render(server)
     }
 }
